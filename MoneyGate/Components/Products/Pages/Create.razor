@@ -1,0 +1,89 @@
+@page "/products/create"
+@using MoneyGate.Components.Products.Models
+@inject NavigationManager NavigationManager
+@inject IHttpClientFactory ClientFactory
+
+<h1 class="text-3xl pb-5">Add a new product</h1>
+
+<div class="bg-white p-4 rounded-lg shadow-md w-full mx-auto">
+    <EditForm Model="Input" OnValidSubmit="OnValidSubmit" class="space-y-6" FormName="createProduct">
+        <DataAnnotationsValidator/>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class=" text-sm font-medium text-gray-700" for="Input.Name">Name</label>
+                <InputText @bind-Value="Input.Name" id="Input.Name" type="text"
+                           name="Input.Name"
+                           required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                <ValidationMessage For="() => Input.Name"/>
+            </div>
+
+            <div class="col-span-2">
+                <label class="text-gray-700 font-bold mb-2">Description</label>
+                <InputTextArea @bind-Value="Input.Description" class="shadow border rounded w-full py-2 px-3"/>
+                <ValidationMessage For="@(() => Input.Description)"/>
+            </div>
+            <div>
+                <label class=" text-sm font-medium text-gray-700" for="Input.Price">
+                    Price
+                </label>
+                <InputNumber @bind-Value="Input.Price" id="Input.Price"
+                             name="Input.Price"
+                             required
+                             class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                <ValidationMessage For="() => Input.Price"/>
+            </div>
+            <div class="flex flex-col justify-between">
+                <label class=" text-sm font-medium text-gray-700" for="Input.Quantity">
+                    Quantity
+                </label>
+                <InputNumber @bind-Value="Input.Quantity" id="Input.Quantity"
+                             name="Input.Quantity"
+                             required
+                             class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"/>
+                <ValidationMessage For="() => Input.Quantity"/>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button
+                type="submit"
+                class="btn btn-primary py-2 px-6">
+                Create
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+
+@code {
+
+    [SupplyParameterFromForm]
+    private ProductModel Input { get; set; } = new();
+
+    private HttpClient? httpClient;
+
+    protected override void OnInitialized()
+    {
+        httpClient = ClientFactory.CreateClient("ProductsClient");
+    }
+
+    private async Task OnValidSubmit()
+    {
+        var product = new ProductModel()
+        {
+            Name = Input.Name,
+            Description = Input.Description,
+            Price = Input.Price,
+            Quantity = Input.Quantity
+        };
+
+       var response = await httpClient!.PostAsJsonAsync("http://localhost:5201/api/products", product);
+
+       if (response.IsSuccessStatusCode)
+       {
+           NavigationManager.NavigateTo("/products");
+       }
+    }
+
+}

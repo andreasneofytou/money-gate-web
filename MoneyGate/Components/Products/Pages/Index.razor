@@ -1,0 +1,58 @@
+@page "/products"
+@using MoneyGate.Components.Products.Models
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<h1 class="text-3xl">Products</h1>
+
+<div class="flex justify-between py-5">
+    <div>
+    </div>
+    <div>
+        <NavLink href="/products/create" class="btn btn-primary">Add Product</NavLink>
+    </div>
+</div>
+<div class="bg-white p-4 rounded-lg shadow-md w-full mx-auto">
+    <div class="overflow-x-auto">
+        <table class="table">
+            <!-- head -->
+            <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var product in products.Select((x, i) => new { Value = x, Index = i }))
+            {
+                <tr class="cursor-pointer" @onclick="() => OnRowClick(product.Value.Id)">
+                    <th>@(product.Index + 1)</th>
+                    <th>@product.Value.Name</th>
+                    <th>@product.Value.Price</th>
+                    <th>@product.Value.Quantity</th>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<ProductModel> products = [];
+    private HttpClient? httpClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        httpClient = ClientFactory.CreateClient("ProductsClient");
+        products = await httpClient.GetFromJsonAsync<IEnumerable<ProductModel>>("http://localhost:5201/api/products") ?? [];
+    }
+
+    private void OnRowClick(Guid productId)
+    {
+        NavigationManager.NavigateTo($"/products/{productId}/edit");
+    }
+
+}
